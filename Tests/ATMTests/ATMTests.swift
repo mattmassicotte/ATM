@@ -24,12 +24,12 @@ struct ATMTests {
 			store: DictionaryBackingStore<String, Int>()
 		)
 		
-		#expect(cache["korben"] == nil)
+		#expect(await cache.read("korben") == nil)
 		
-		cache["korben"] = 45
-		#expect(cache["korben"] == 45)
+		await cache.write("korben", 45)
+		#expect(await cache.read("korben") == 45)
 		
-		cache["korben"] = nil
-		#expect(cache["korben"] == nil)
+		await cache.write("korben", nil)
+		#expect(await cache.read("korben") == nil)
 	}
 }

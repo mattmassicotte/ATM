@@ -18,14 +18,3 @@ public enum WritePolicy {
 	case writeThrough
 	case writeBack
 }
-
-public struct CacheLevel<Key: Hashable, Value> {
-	public var writePolicy: WritePolicy
-	public var store: any BackingStore<Key, Value>
-	
-	public init(writePolicy: WritePolicy, store: any BackingStore<Key, Value>) {
-		self.writePolicy = writePolicy
-		self.store = store
-	}
-}
-

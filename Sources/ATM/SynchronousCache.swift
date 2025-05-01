@@ -1,7 +1,17 @@
 public struct SynchronousCache<Key: Hashable, Value> {
-	public var levels: [CacheLevel<Key, Value>]
+	public struct CacheLevel {
+		public var writePolicy: WritePolicy
+		public var store: any BackingStore<Key, Value>
+		
+		public init(writePolicy: WritePolicy, store: any BackingStore<Key, Value>) {
+			self.writePolicy = writePolicy
+			self.store = store
+		}
+	}
+	
+	public var levels: [CacheLevel]
 
-	public init(levels: [CacheLevel<Key, Value>]) {
+	public init(levels: [CacheLevel]) {
 		self.levels = levels
 	}
 	
