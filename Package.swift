@@ -4,6 +4,9 @@ import PackageDescription
 
 let package = Package(
 	name: "ATM",
+	platforms: [
+		.macOS(.v10_15),
+	],
 	products: [
 		.library(name: "ATM", targets: ["ATM"]),
 	],
