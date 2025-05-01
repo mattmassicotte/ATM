@@ -11,8 +11,12 @@
 
 Where you get your cache
 
+- Fully synchronous or mixed sync/async caches
+- Concurrency-friendly API
+- Multi-level support with write policies per level
+
 > [!WARNING]
-> I'm just playing around right now. Nothing to see here.
+> still working out some implementation details
  
 ## Integration
 
@@ -21,6 +25,45 @@ dependencies: [
     .package(url: "https://github.com/mattmassicotte/ATM", branch: "main")
 ]
 ```
+
+## Usage
+
+Fully synchronous cache with a single backing store.
+
+```swift
+var cache = SynchronousCache<String, Int>(
+    writePolicy: .writeThrough,
+    store: DictionaryBackingStore<String, Int>()
+)
+
+cache["korben"] = 45
+print(cache["korben"]) // 45
+```
+
+Multi-level cache:
+
+```swift
+var cache = SynchronousCache<String, Int>(
+    levels: [
+        .init(writePolicy: .writeThrough, store: DictionaryBackingStore<String, Int>()),
+        .init(writePolicy: .writeThrough, store: CacheBackingStore<String, Int>()),
+    ]
+)
+```
+
+The `AsynchronousCache` supports both synchronous and asynchronous cache levels, but exposes an asynchronous interface.
+
+```swift
+var cache = AsynchronousCache<String, Int>(
+	writePolicy: .writeThrough,
+	store: DictionaryBackingStore<String, Int>()
+)
+
+await cache.write("korben", 45)
+print(await cache.read("korben")) // 45
+```
+
+Both `SynchronousCache` and `AsynchronousCache` are non-Sendable. But if you need a fully-Sendable async cache check out `SendableCache`.
 
 ## Contributing and Collaboration
 

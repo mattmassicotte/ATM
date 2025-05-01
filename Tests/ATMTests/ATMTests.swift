@@ -18,8 +18,44 @@ struct ATMTests {
 		#expect(cache["korben"] == nil)
 	}
 	
+	@Test func multilevelStore() throws {
+		var cache = SynchronousCache<String, Int>(
+			levels: [
+				.init(writePolicy: .writeThrough, store: DictionaryBackingStore<String, Int>()),
+				.init(writePolicy: .writeThrough, store: CacheBackingStore<String, Int>()),
+			]
+		)
+		
+		#expect(cache["korben"] == nil)
+		
+		cache["korben"] = 45
+		#expect(cache["korben"] == 45)
+		
+		cache["korben"] = nil
+		#expect(cache["korben"] == nil)
+	}
+}
+
+extension ATMTests {
 	@Test func readAndWriteDictionaryAsyncStore() async throws {
 		var cache = AsynchronousCache<String, Int>(
+			writePolicy: .writeThrough,
+			store: DictionaryBackingStore<String, Int>()
+		)
+		
+		#expect(await cache.read("korben") == nil)
+		
+		await cache.write("korben", 45)
+		#expect(await cache.read("korben") == 45)
+		
+		await cache.write("korben", nil)
+		#expect(await cache.read("korben") == nil)
+	}
+}
+
+extension ATMTests {
+	@Test func sendableReadAndWrite() async throws {
+		let cache = SendableCache<String, Int>(
 			writePolicy: .writeThrough,
 			store: DictionaryBackingStore<String, Int>()
 		)
