@@ -7,6 +7,14 @@ public struct SynchronousCache<Key: Hashable, Value> {
 			self.writePolicy = writePolicy
 			self.store = store
 		}
+		
+		public static func writeThrough(_ store: any BackingStore<Key, Value>) -> CacheLevel {
+			CacheLevel(writePolicy: .writeThrough, store: store)
+		}
+		
+		public static func writeBack(_ store: any BackingStore<Key, Value>) -> CacheLevel {
+			CacheLevel(writePolicy: .writeBack, store: store)
+		}
 	}
 	
 	public var levels: [CacheLevel]
@@ -16,7 +24,7 @@ public struct SynchronousCache<Key: Hashable, Value> {
 	}
 	
 	public init(writePolicy: WritePolicy, store: any BackingStore<Key, Value>) {
-		self.levels = [.init(writePolicy: writePolicy, store: store)]
+		self.levels = [CacheLevel(writePolicy: writePolicy, store: store)]
 	}
 }
 

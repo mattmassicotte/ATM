@@ -14,6 +14,7 @@ Where you get your cache
 - Fully synchronous or mixed sync/async caches
 - Concurrency-friendly API
 - Multi-level support with write policies per level
+- Backing stores for `Dictionary`, `NSCache`
 
 > [!WARNING]
 > still working out some implementation details
@@ -31,22 +32,22 @@ dependencies: [
 Fully synchronous cache with a single backing store.
 
 ```swift
-var cache = SynchronousCache<String, Int>(
+var cache = SynchronousCache<String, String>(
     writePolicy: .writeThrough,
-    store: DictionaryBackingStore<String, Int>()
+    store: DictionaryBackingStore()
 )
 
-cache["korben"] = 45
-print(cache["korben"]) // 45
+cache["korben"] = "dallas"
+print(cache["korben"]) // "dallas"
 ```
 
 Multi-level cache:
 
 ```swift
-var cache = SynchronousCache<String, Int>(
+var cache = SynchronousCache<String, String>(
     levels: [
-        .init(writePolicy: .writeThrough, store: DictionaryBackingStore<String, Int>()),
-        .init(writePolicy: .writeThrough, store: CacheBackingStore<String, Int>()),
+        .writeThrough(DictionaryBackingStore()),
+        .writeThrough(CacheBackingStore()),
     ]
 )
 ```
@@ -54,13 +55,13 @@ var cache = SynchronousCache<String, Int>(
 The `AsynchronousCache` supports both synchronous and asynchronous cache levels, but exposes an asynchronous interface.
 
 ```swift
-var cache = AsynchronousCache<String, Int>(
+var cache = AsynchronousCache<String, String>(
 	writePolicy: .writeThrough,
-	store: DictionaryBackingStore<String, Int>()
+	store: DictionaryBackingStore()
 )
 
-await cache.write("korben", 45)
-print(await cache.read("korben")) // 45
+await cache.write("korben", "dallas")
+print(await cache.read("korben")) // "dallas"
 ```
 
 Both `SynchronousCache` and `AsynchronousCache` are non-Sendable. But if you need a fully-Sendable async cache check out `SendableCache`.

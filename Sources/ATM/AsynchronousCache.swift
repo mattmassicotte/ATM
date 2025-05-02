@@ -2,7 +2,24 @@ public struct AsynchronousCache<Key: Hashable, Value> {
 	public enum CacheLevel {
 		case sync(WritePolicy, any BackingStore<Key, Value>)
 		case async(WritePolicy, any AsyncBackingStore<Key, Value>)
+		
+		public static func writeThrough(_ store: any BackingStore<Key, Value>) -> CacheLevel {
+			.sync(.writeThrough, store)
+		}
+		
+		public static func writeBack(_ store: any BackingStore<Key, Value>) -> CacheLevel {
+			.sync(.writeBack, store)
+		}
+		
+		public static func writeThrough(_ store: any AsyncBackingStore<Key, Value>) -> CacheLevel {
+			.async(.writeThrough, store)
+		}
+		
+		public static func writeBack(_ store: any AsyncBackingStore<Key, Value>) -> CacheLevel {
+			.async(.writeBack, store)
+		}
 	}
+	
 	public var levels: [CacheLevel]
 
 	public init(levels: [CacheLevel]) {

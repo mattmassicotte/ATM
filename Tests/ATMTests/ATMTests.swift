@@ -6,7 +6,7 @@ struct ATMTests {
 	@Test func readAndWriteDictionaryStore() throws {
 		var cache = SynchronousCache<String, Int>(
 			writePolicy: .writeThrough,
-			store: DictionaryBackingStore<String, Int>()
+			store: DictionaryBackingStore()
 		)
 		
 		#expect(cache["korben"] == nil)
@@ -21,8 +21,8 @@ struct ATMTests {
 	@Test func multilevelStore() throws {
 		var cache = SynchronousCache<String, Int>(
 			levels: [
-				.init(writePolicy: .writeThrough, store: DictionaryBackingStore<String, Int>()),
-				.init(writePolicy: .writeThrough, store: CacheBackingStore<String, Int>()),
+				.writeThrough(DictionaryBackingStore()),
+				.writeThrough(CacheBackingStore()),
 			]
 		)
 		
@@ -40,13 +40,30 @@ extension ATMTests {
 	@Test func readAndWriteDictionaryAsyncStore() async throws {
 		var cache = AsynchronousCache<String, Int>(
 			writePolicy: .writeThrough,
-			store: DictionaryBackingStore<String, Int>()
+			store: DictionaryBackingStore()
 		)
 		
 		#expect(await cache.read("korben") == nil)
 		
 		await cache.write("korben", 45)
 		#expect(await cache.read("korben") == 45)
+		
+		await cache.write("korben", nil)
+		#expect(await cache.read("korben") == nil)
+	}
+	
+	@Test func multilevelAsyncStore() async throws {
+		var cache = AsynchronousCache<String, String>(
+			levels: [
+				.writeThrough(DictionaryBackingStore<String, String>()),
+				.writeThrough(CacheBackingStore<String, String>()),
+			]
+		)
+		
+		#expect(await cache.read("korben") == nil)
+		
+		await cache.write("korben", "dallas")
+		#expect(await cache.read("korben") == "dallas")
 		
 		await cache.write("korben", nil)
 		#expect(await cache.read("korben") == nil)
