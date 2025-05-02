@@ -18,11 +18,11 @@ public actor SendableCache<Key: Hashable & Sendable, Value: Sendable> {
 	}
 	
 	public func write(_ key: Key, _ value: Value?) async {
-		nonisolated(unsafe) var thing = cache
+		var cacheCopy = cache
 		
-		await thing.write(key, value, actor: self)
+		await cacheCopy.write(key, value, actor: self)
 		
-		self.cache = thing
+		self.cache = cacheCopy
 	}
 }
 
