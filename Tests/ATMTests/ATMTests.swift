@@ -72,17 +72,17 @@ extension ATMTests {
 
 extension ATMTests {
 	@Test func sendableReadAndWrite() async throws {
-		let cache = SendableCache<String, Int>(
+		let cache = SendableCache<String, String>(
 			writePolicy: .writeThrough,
-			store: DictionaryBackingStore<String, Int>()
+			store: DictionaryBackingStore()
 		)
 		
-		#expect(await cache.read("korben") == nil)
+		#expect(await cache["korben"] == nil)
 		
-		await cache.write("korben", 45)
-		#expect(await cache.read("korben") == 45)
+		await cache.write("korben", "dallas")
+		#expect(await cache["korben"] == "dallas")
 		
 		await cache.write("korben", nil)
-		#expect(await cache.read("korben") == nil)
+		#expect(await cache["korben"] == nil)
 	}
 }

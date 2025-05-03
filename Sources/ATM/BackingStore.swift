@@ -30,3 +30,9 @@ extension BackingStore {
 		set { write(key, newValue) }
 	}
 }
+
+extension AsyncBackingStore where Self: Actor, Key: Sendable, Value: Sendable {
+	public subscript(_ key: Key) -> Value? {
+		get async { await read(key, actor: self) }
+	}
+}
