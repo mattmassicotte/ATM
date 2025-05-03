@@ -23,3 +23,10 @@ public enum WritePolicy {
 	/// Values are only written to the cache immediately.
 	case writeBack
 }
+
+extension BackingStore {
+	public subscript(_ key: Key) -> Value? {
+		get { read(key) }
+		set { write(key, newValue) }
+	}
+}

@@ -49,14 +49,3 @@ extension SynchronousCache: BackingStore {
 		levels[0] = level
 	}
 }
-
-extension SynchronousCache {
-	public subscript(_ key: Key) -> Value? {
-		get {
-			read(key)
-		}
-		set {
-			write(key, newValue)
-		}
-	}
-}
