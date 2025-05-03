@@ -55,8 +55,8 @@ extension ATMTests {
 	@Test func multilevelAsyncStore() async throws {
 		var cache = AsynchronousCache<String, String>(
 			levels: [
-				.writeThrough(DictionaryBackingStore<String, String>()),
-				.writeThrough(CacheBackingStore<String, String>()),
+				.writeThrough(DictionaryBackingStore()),
+				.writeThrough(CacheBackingStore()),
 			]
 		)
 		
