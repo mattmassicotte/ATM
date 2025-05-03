@@ -56,8 +56,8 @@ The `AsynchronousCache` supports both synchronous and asynchronous cache levels,
 
 ```swift
 var cache = AsynchronousCache<String, String>(
-	writePolicy: .writeThrough,
-	store: DictionaryBackingStore()
+    writePolicy: .writeThrough,
+    store: DictionaryBackingStore()
 )
 
 await cache.write("korben", "dallas")
