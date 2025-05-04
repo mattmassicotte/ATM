@@ -59,10 +59,10 @@ extension AsynchronousCache: AsyncBackingStore {
 		}
 		
 		switch level {
-		case var .sync(policy, store):
+		case .sync(let policy, var store):
 			store.write(key, value)
 			levels[0] = .sync(policy, store)
-		case var .async(policy, store):
+		case .async(let policy, var store):
 			await store.write(key, value, actor: actor)
 			levels[0] = .async(policy, store)
 		}
