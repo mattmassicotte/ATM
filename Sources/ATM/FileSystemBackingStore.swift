@@ -1,7 +1,9 @@
 import Foundation
 
 /// A simple store backed by ``FileManager``.
-public struct FileSystemBackingStore<Key: NSString, Value: Codable>: BackingStore {
+public struct FileSystemBackingStore<Value: Codable>: BackingStore {
+
+	public typealias Key = String
 
 	private let directoryName: String
 	private let encoder: JSONEncoder

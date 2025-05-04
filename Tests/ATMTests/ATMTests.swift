@@ -38,7 +38,7 @@ struct ATMTests {
 	}
 
 	@Test func fileSystemStore() throws {
-		var cache = SynchronousCache<NSString, Int>(
+		var cache = SynchronousCache<String, Int>(
 			writePolicy: .writeThrough,
 			store: FileSystemBackingStore(directoryName: "ATM-Tests")
 		)
