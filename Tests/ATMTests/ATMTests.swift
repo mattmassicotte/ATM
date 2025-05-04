@@ -1,3 +1,5 @@
+import Foundation
+
 import Testing
 
 import ATM
@@ -33,6 +35,15 @@ struct ATMTests {
 		
 		cache["korben"] = nil
 		#expect(cache["korben"] == nil)
+	}
+
+	@Test func fileSystemStore() throws {
+		var cache = SynchronousCache<NSString, Int>(
+			writePolicy: .writeThrough,
+			store: FileSystemBackingStore(directoryName: "ATM-Tests")
+		)
+
+		// implement tests here
 	}
 }
 
