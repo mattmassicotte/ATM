@@ -36,7 +36,7 @@ public struct AsynchronousCache<Key: Hashable, Value> {
 }
 
 extension AsynchronousCache: AsyncBackingStore {
-	public func read(_ key: Key, actor: isolated (any Actor)? = #isolation) async -> Value? {
+	public func read(_ key: Key) async -> Value? {
 		for level in levels {
 			switch level {
 			case let .sync(_, store):
@@ -44,7 +44,7 @@ extension AsynchronousCache: AsyncBackingStore {
 					return value
 				}
 			case let .async(_, store):
-				if let value = await store.read(key, actor: actor) {
+				if let value = await store.read(key) {
 					return value
 				}
 			}
@@ -53,17 +53,17 @@ extension AsynchronousCache: AsyncBackingStore {
 		return nil
 	}
 	
-	public mutating func write(_ key: Key, _ value: Value?, actor: isolated (any Actor)? = #isolation) async {
+	public mutating func write(_ key: Key, _ value: Value?) async {
 		guard let level = levels.first else {
 			return
 		}
 		
 		switch level {
-		case var .sync(policy, store):
+		case .sync(let policy, var store):
 			store.write(key, value)
 			levels[0] = .sync(policy, store)
-		case var .async(policy, store):
-			await store.write(key, value, actor: actor)
+		case .async(let policy, var store):
+			await store.write(key, value)
 			levels[0] = .async(policy, store)
 		}
 	}

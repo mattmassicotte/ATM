@@ -1,4 +1,4 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.2
 
 import PackageDescription
 
@@ -15,8 +15,23 @@ let package = Package(
 	products: [
 		.library(name: "ATM", targets: ["ATM"]),
 	],
+	dependencies: [
+		.package(url: "https://github.com/mattmassicotte/TaskGate", revision: "b6259ff6b1927e5752b9ab0ff03f794c16547f19"),
+	],
 	targets: [
-		.target(name: "ATM"),
-		.testTarget(name: "ATMTests", dependencies: ["ATM"]),
+		.target(
+			name: "ATM",
+			dependencies: ["TaskGate"],
+			swiftSettings: [
+				.enableUpcomingFeature("NonisolatedNonsendingByDefault"),
+			]
+		),
+		.testTarget(
+			name: "ATMTests",
+			dependencies: ["ATM"],
+			swiftSettings: [
+				.enableUpcomingFeature("NonisolatedNonsendingByDefault"),
+			]
+		),
 	]
 )

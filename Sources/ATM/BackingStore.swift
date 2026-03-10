@@ -12,8 +12,8 @@ public protocol AsyncBackingStore<Key, Value> {
 	associatedtype Key: Hashable
 	associatedtype Value
 	
-	func read(_ key: Key, actor: isolated (any Actor)?) async -> Value?
-	mutating func write(_ key: Key, _ value: Value?, actor: isolated (any Actor)?) async
+	func read(_ key: Key) async -> Value?
+	mutating func write(_ key: Key, _ value: Value?) async
 }
 
 /// Defines how data written to the cache is propagated to its backing stores.
@@ -33,6 +33,6 @@ extension BackingStore {
 
 extension AsyncBackingStore where Self: Actor, Key: Sendable, Value: Sendable {
 	public subscript(_ key: Key) -> Value? {
-		get async { await read(key, actor: self) }
+		get async { await read(key) }
 	}
 }
