@@ -20,7 +20,7 @@ struct FileSystemBackingStoreTests {
 
 		store.write("Korben", "Dallas")
 		#expect(store.read("Korben") == "Dallas")
-		#expect(FileManager.default.fileExists(atPath: url.appendingPathComponent("Korben").path()))
+		#expect(FileManager.default.fileExists(atPath: url.appendingPathComponent("Korben").path))
 	}
 
 	@Test func errorReporting() async throws {
