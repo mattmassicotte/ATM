@@ -2,79 +2,81 @@ import Foundation
 
 /// A simple store backed by ``FileManager``.
 public struct FileSystemBackingStore<Value: Codable>: BackingStore {
-
 	public typealias Key = String
+	public typealias Encoder = (Value) throws -> Data
+	public typealias Decoder = (Data) throws -> Value
 
-	private let directoryName: String
-	private let encoder: JSONEncoder
-	private let decoder: JSONDecoder
+	private let url: URL
+	private let encoder: Encoder
+	private let decoder: Decoder
+	public var errorHandler: (any Error) -> Void = { _ in }
 
 	public init(
-		directoryName: String,
-		encoder: JSONEncoder = .init(),
-		decoder: JSONDecoder = .init()
-	) {
-		self.directoryName = directoryName
+		url: URL,
+		encoder: @escaping Encoder,
+		decoder: @escaping Decoder
+	) throws {
+		self.url = url
 		self.encoder = encoder
 		self.decoder = decoder
+
+		try createDirectoryIfNeeded()
+	}
+
+	public func url(for key: Key) -> URL {
+		url.appendingPathComponent(key, isDirectory: false)
+	}
+
+	private func createDirectoryIfNeeded() throws {
+		if FileManager.default.fileExists(atPath: url.path) == false {
+			try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+		}
 	}
 
 	public func read(_ key: Key) -> Value? {
 		do {
-			let fileURL = try FileManager.directoryAt(directoryName).appendingPathComponent(key as String)
+			let keyURL = url(for: key)
+			let data = try Data(contentsOf: keyURL)
 
-			guard FileManager.default.fileExists(at: fileURL) else {
-				return nil
-			}
-
-			let data = try Data(contentsOf: fileURL)
-			return try decoder.decode(Value.self, from: data)
+			return try decoder(data)
 		} catch {
-			// how do we handle errors?
+			errorHandler(error)
+
 			return nil
 		}
 	}
 
 	public func write(_ key: Key, _ value: Value?) {
 		do {
-			let fileURL = try FileManager.directoryAt(directoryName).appendingPathComponent(key as String)
+			let keyURL = url(for: key)
 
 			guard let value else {
-				if FileManager.default.fileExists(at: fileURL) {
-					try FileManager.default.removeItem(at: fileURL)
+				if FileManager.default.fileExists(atPath: keyURL.path) {
+					try FileManager.default.removeItem(at: keyURL)
 				}
+
 				return
 			}
 
-			let data = try encoder.encode(value)
-			try data.write(to: fileURL)
+			let data = try encoder(value)
+			try data.write(to: keyURL)
 		} catch {
-			// how do we handle errors?
+			errorHandler(error)
 		}
 	}
 }
 
+extension FileSystemBackingStore {
+	public init(
+		url: URL
+	) throws {
+		let jsonEncoder = JSONEncoder()
+		let jsonDecoder = JSONDecoder()
 
-private extension FileManager {
-	func fileExists(at url: URL) -> Bool {
-		fileExists(atPath: url.path)
-	}
-
-	static func directoryAt(_ path: String) throws -> URL {
-		let appSupportDirectory = try FileManager.default.url(
-			for: .applicationSupportDirectory,
-			in: .userDomainMask,
-			appropriateFor: nil,
-			create: true
+		try self.init(
+			url: url,
+			encoder: { try jsonEncoder.encode($0) },
+			decoder: { try jsonDecoder.decode(Value.self, from: $0) }
 		)
-
-		let directoryPath = appSupportDirectory.appendingPathComponent(path, isDirectory: true)
-
-		var isDirectory = ObjCBool(true)
-		if !FileManager.default.fileExists(atPath: directoryPath.path, isDirectory: &isDirectory) {
-			try FileManager.default.createDirectory(at: directoryPath, withIntermediateDirectories: true)
-		}
-
-		return directoryPath
 	}
 }

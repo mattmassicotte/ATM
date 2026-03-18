@@ -14,7 +14,7 @@ Where you get your cache
 - Fully synchronous or mixed sync/async caches
 - Concurrency-friendly API
 - Multi-level support with write policies per level
-- Backing stores for `Dictionary`, `NSCache`
+- Backing stores for `Dictionary`, `NSCache`, and the local disk
 
 > [!WARNING]
 > still working out some implementation details
@@ -48,6 +48,7 @@ var cache = SynchronousCache<String, String>(
     levels: [
         .writeThrough(DictionaryBackingStore()),
         .writeThrough(CacheBackingStore()),
+        .writeThrough(FileSystemBackingStore(url: localURL))
     ]
 )
 ```
