@@ -16,12 +16,10 @@ let package = Package(
 		.library(name: "ATM", targets: ["ATM"]),
 	],
 	dependencies: [
-		.package(url: "https://github.com/mattmassicotte/TaskGate", revision: "b6259ff6b1927e5752b9ab0ff03f794c16547f19"),
 	],
 	targets: [
 		.target(
 			name: "ATM",
-			dependencies: ["TaskGate"],
 			swiftSettings: [
 				.enableUpcomingFeature("NonisolatedNonsendingByDefault"),
 			]

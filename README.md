@@ -64,7 +64,7 @@ await cache.write("korben", "dallas")
 print(await cache.read("korben")) // "dallas"
 ```
 
-Both `SynchronousCache` and `AsynchronousCache` are non-Sendable. But if you need a fully-Sendable async cache check out `SendableCache`.
+Both `SynchronousCache` and `AsynchronousCache` are non-Sendable.
 
 ## Contributing and Collaboration
 
@@ -85,4 +85,3 @@ By participating in this project you agree to abide by the [Contributor Code of 
 [matrix]: https://matrix.to/#/%23chimehq%3Amatrix.org
 [matrix badge]: https://img.shields.io/matrix/chimehq%3Amatrix.org?label=Matrix
 [discord]: https://discord.gg/esFpX6sErJ
-[LMDB]: https://www.symas.com/lmdb
