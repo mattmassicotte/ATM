@@ -1,3 +1,5 @@
+import Foundation
+
 import Testing
 
 import ATM
