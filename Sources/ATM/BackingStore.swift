@@ -39,9 +39,7 @@ extension AsyncBackingStore {
 	public mutating func write(_ key: Key, _ value: Value?) async {
 		await write(key, value, cost: 0)
 	}
-}
 
-extension AsyncBackingStore where Self: Actor, Key: Sendable, Value: Sendable {
 	public subscript(_ key: Key) -> Value? {
 		get async { await read(key) }
 	}

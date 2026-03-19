@@ -4,6 +4,22 @@ import Testing
 
 import ATM
 
+class ReferenceStore<Store: BackingStore>: BackingStore {
+	private(set) var wrapped: Store
+
+	init(_ wrapped: Store) {
+		self.wrapped = wrapped
+	}
+
+	func read(_ key: Store.Key) -> Store.Value? {
+		wrapped.read(key)
+	}
+
+	func write(_ key: Store.Key, _ value: Store.Value?, cost: Int) {
+		wrapped.write(key, value, cost: cost)
+	}
+}
+
 struct ATMTests {
 	@Test func readAndWriteDictionaryStore() throws {
 		var cache = SynchronousCache<String, Int>(
@@ -32,9 +48,65 @@ struct ATMTests {
 		
 		cache["korben"] = 45
 		#expect(cache["korben"] == 45)
-		
+
 		cache["korben"] = nil
 		#expect(cache["korben"] == nil)
+	}
+
+	@Test func synchronousWriteThroughPolicy() throws {
+		let level0 = ReferenceStore(DictionaryBackingStore<String, Int>())
+		let level1 = ReferenceStore(DictionaryBackingStore<String, Int>())
+		let level2 = ReferenceStore(DictionaryBackingStore<String, Int>())
+
+		var cache = SynchronousCache<String, Int>(
+			levels: [
+				.writeThrough(level0),
+				.writeThrough(level1),
+				.writeThrough(level2),
+			]
+		)
+
+		#expect(cache["korben"] == nil)
+
+		cache["korben"] = 45
+		#expect(cache["korben"] == 45)
+		#expect(level0["korben"] == 45)
+		#expect(level1["korben"] == 45)
+		#expect(level2["korben"] == 45)
+
+		cache["korben"] = nil
+		#expect(cache["korben"] == nil)
+		#expect(level0["korben"] == nil)
+		#expect(level1["korben"] == nil)
+		#expect(level2["korben"] == nil)
+	}
+
+	@Test func synchronousWriteBackPolicy() throws {
+		let level0 = ReferenceStore(DictionaryBackingStore<String, Int>())
+		let level1 = ReferenceStore(DictionaryBackingStore<String, Int>())
+		let level2 = ReferenceStore(DictionaryBackingStore<String, Int>())
+
+		var cache = SynchronousCache<String, Int>(
+			levels: [
+				.writeThrough(level0),
+				.writeBack(level1),
+				.writeBack(level2), // technically meaningless as the last level
+			]
+		)
+
+		#expect(cache["korben"] == nil)
+
+		cache["korben"] = 45
+		#expect(cache["korben"] == 45)
+		#expect(level0["korben"] == 45)
+		#expect(level1["korben"] == 45)
+		#expect(level2["korben"] == nil)
+
+		cache["korben"] = nil
+		#expect(cache["korben"] == nil)
+		#expect(level0["korben"] == nil)
+		#expect(level1["korben"] == nil)
+		#expect(level2["korben"] == nil)
 	}
 }
 
@@ -69,5 +141,61 @@ extension ATMTests {
 		
 		await cache.write("korben", nil)
 		#expect(await cache.read("korben") == nil)
+	}
+
+	@Test func asynchronousWriteThroughPolicy() async throws {
+		let level0 = ReferenceStore(DictionaryBackingStore<String, Int>())
+		let level1 = ReferenceStore(DictionaryBackingStore<String, Int>())
+		let level2 = ReferenceStore(DictionaryBackingStore<String, Int>())
+
+		var cache = AsynchronousCache<String, Int>(
+			levels: [
+				.writeThrough(level0),
+				.writeThrough(level1),
+				.writeThrough(level2),
+			]
+		)
+
+		#expect(await cache["korben"] == nil)
+
+		await cache.write("korben", 45)
+		#expect(await cache["korben"] == 45)
+		#expect(level0["korben"] == 45)
+		#expect(level1["korben"] == 45)
+		#expect(level2["korben"] == 45)
+
+		await cache.write("korben", nil)
+		#expect(await cache["korben"] == nil)
+		#expect(level0["korben"] == nil)
+		#expect(level1["korben"] == nil)
+		#expect(level2["korben"] == nil)
+	}
+
+	@Test func asynchronousWriteBackPolicy() async throws {
+		let level0 = ReferenceStore(DictionaryBackingStore<String, Int>())
+		let level1 = ReferenceStore(DictionaryBackingStore<String, Int>())
+		let level2 = ReferenceStore(DictionaryBackingStore<String, Int>())
+
+		var cache = AsynchronousCache<String, Int>(
+			levels: [
+				.writeThrough(level0),
+				.writeBack(level1),
+				.writeBack(level2), // technically meaningless as the last level
+			]
+		)
+
+		#expect(await cache["korben"] == nil)
+
+		await cache.write("korben", 45)
+		#expect(await cache["korben"] == 45)
+		#expect(level0["korben"] == 45)
+		#expect(level1["korben"] == 45)
+		#expect(level2["korben"] == nil)
+
+		await cache.write("korben", nil)
+		#expect(await cache["korben"] == nil)
+		#expect(level0["korben"] == nil)
+		#expect(level1["korben"] == nil)
+		#expect(level2["korben"] == nil)
 	}
 }

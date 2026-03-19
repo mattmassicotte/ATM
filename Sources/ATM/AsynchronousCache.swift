@@ -18,6 +18,15 @@ public struct AsynchronousCache<Key: Hashable, Value> {
 		public static func writeBack(_ store: any AsyncBackingStore<Key, Value>) -> CacheLevel {
 			.async(.writeBack, store)
 		}
+
+		public var writePolicy: WritePolicy {
+			switch self {
+			case .async(let policy, _):
+				policy
+			case .sync(let policy, _):
+				policy
+			}
+		}
 	}
 	
 	public var levels: [CacheLevel]
@@ -54,17 +63,25 @@ extension AsynchronousCache: AsyncBackingStore {
 	}
 	
 	public mutating func write(_ key: Key, _ value: Value?, cost: Int) async {
-		guard let level = levels.first else {
-			return
-		}
-		
-		switch level {
-		case .sync(let policy, var store):
-			store.write(key, value, cost: cost)
-			levels[0] = .sync(policy, store)
-		case .async(let policy, var store):
-			await store.write(key, value, cost: cost)
-			levels[0] = .async(policy, store)
+		for i in 0..<levels.count {
+			let level = levels[i]
+
+			switch level {
+			case .sync(let policy, var store):
+				store.write(key, value, cost: cost)
+				levels[i] = .sync(policy, store)
+			case .async(let policy, var store):
+				await store.write(key, value, cost: cost)
+
+				levels[i] = .async(policy, store)
+			}
+
+			switch level.writePolicy {
+			case .writeBack:
+				return
+			case .writeThrough:
+				continue
+			}
 		}
 	}
 }

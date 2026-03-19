@@ -40,12 +40,15 @@ extension SynchronousCache: BackingStore {
 	}
 	
 	public mutating func write(_ key: Key, _ value: Value?, cost: Int) {
-		guard var level = levels.first else {
-			return
-		}
-			
-		level.store.write(key, value, cost: cost)
+		for i in 0..<levels.count {
+			levels[i].store.write(key, value, cost: cost)
 
-		levels[0] = level
+			switch levels[i].writePolicy {
+			case .writeBack:
+				return
+			case .writeThrough:
+				continue
+			}
+		}
 	}
 }
