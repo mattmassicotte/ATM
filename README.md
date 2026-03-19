@@ -67,6 +67,33 @@ print(await cache.read("korben")) // "dallas"
 
 Both `SynchronousCache` and `AsynchronousCache` are non-Sendable.
 
+There's a cool library called [LRUCache](https://github.com/nicklockwood/LRUCache) that could be useful here. This is how you'd incorporate it:
+
+```swift
+import LRUCache
+import ATM
+
+extension LRUCache: BackingStore {
+    public func read(_ key: Key) -> Value? {
+        value(forKey: key)
+    }
+
+    public func write(_ key: Key, _ value: Value?, cost: Int) {
+        guard let value else {
+            removeValue(forKey: key)
+            return
+        }
+
+        setValue(value, forKey: key, cost: cost)
+    }
+}
+
+var cache = SynchronousCache<String, String>(
+    writePolicy: .writeThrough,
+    store: LRUCache<String, Int>(clearsOnMemoryPressure: true)
+)
+```
+
 ## Contributing and Collaboration
 
 I would love to hear from you! Issues or pull requests work great. Both a [Matrix space][matrix] and [Discord][discord] are available for live help, but I have a strong bias towards answering in the form of documentation. You can also find me on [the web](https://www.massicotte.org).
