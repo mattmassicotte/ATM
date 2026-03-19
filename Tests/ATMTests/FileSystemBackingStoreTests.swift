@@ -14,7 +14,7 @@ struct FileSystemBackingStoreTests {
 	}
 
 	@Test func readAndWrite() throws {
-		let store = try FileSystemBackingStore<String>(url: url)
+		var store = try FileSystemBackingStore<String>(url: url)
 
 		#expect(store.read("Korben") == nil)
 

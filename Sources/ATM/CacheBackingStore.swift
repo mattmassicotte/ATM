@@ -62,11 +62,11 @@ public struct CacheBackingStore<Key: Hashable, Value>: BackingStore {
 	
 	public func read(_ key: Key) -> Value? {
 		let keyObj = KeyObject(key)
-		
+
 		return internalCache.object(forKey: keyObj)?.value
 	}
 	
-	public func write(_ key: Key, _ value: Value?) {
+	public func write(_ key: Key, _ value: Value?, cost: Int) {
 		let keyObj = KeyObject(key)
 		
 		guard let value else {
@@ -76,6 +76,6 @@ public struct CacheBackingStore<Key: Hashable, Value>: BackingStore {
 		
 		let valueObj = ValueObject(value, for: key)
 		
-		internalCache.setObject(valueObj, forKey: keyObj)
+		internalCache.setObject(valueObj, forKey: keyObj, cost: cost)
 	}
 }

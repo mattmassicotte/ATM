@@ -4,7 +4,7 @@ public protocol BackingStore<Key, Value> {
 	associatedtype Value
 	
 	func read(_ key: Key) -> Value?
-	mutating func write(_ key: Key, _ value: Value?)
+	mutating func write(_ key: Key, _ value: Value?, cost: Int)
 }
 
 /// An asynchronous cache backing store.
@@ -13,7 +13,7 @@ public protocol AsyncBackingStore<Key, Value> {
 	associatedtype Value
 	
 	func read(_ key: Key) async -> Value?
-	mutating func write(_ key: Key, _ value: Value?) async
+	mutating func write(_ key: Key, _ value: Value?, cost: Int) async
 }
 
 /// Defines how data written to the cache is propagated to its backing stores.
@@ -25,9 +25,19 @@ public enum WritePolicy {
 }
 
 extension BackingStore {
+	public mutating func write(_ key: Key, _ value: Value?) {
+		write(key, value, cost: 0)
+	}
+
 	public subscript(_ key: Key) -> Value? {
 		get { read(key) }
 		set { write(key, newValue) }
+	}
+}
+
+extension AsyncBackingStore {
+	public mutating func write(_ key: Key, _ value: Value?) async {
+		await write(key, value, cost: 0)
 	}
 }
 

@@ -53,17 +53,17 @@ extension AsynchronousCache: AsyncBackingStore {
 		return nil
 	}
 	
-	public mutating func write(_ key: Key, _ value: Value?) async {
+	public mutating func write(_ key: Key, _ value: Value?, cost: Int) async {
 		guard let level = levels.first else {
 			return
 		}
 		
 		switch level {
 		case .sync(let policy, var store):
-			store.write(key, value)
+			store.write(key, value, cost: cost)
 			levels[0] = .sync(policy, store)
 		case .async(let policy, var store):
-			await store.write(key, value)
+			await store.write(key, value, cost: cost)
 			levels[0] = .async(policy, store)
 		}
 	}

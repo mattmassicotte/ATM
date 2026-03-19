@@ -46,7 +46,7 @@ public struct FileSystemBackingStore<Value: Codable>: BackingStore {
 		}
 	}
 
-	public func write(_ key: Key, _ value: Value?) {
+	public func write(_ key: Key, _ value: Value?, cost: Int) {
 		do {
 			let keyURL = url(for: key)
 
@@ -67,6 +67,7 @@ public struct FileSystemBackingStore<Value: Codable>: BackingStore {
 }
 
 extension FileSystemBackingStore {
+	/// Creates an instance that uses `JSONEncoder` and `JSONDecoder` for serialization.
 	public init(
 		url: URL
 	) throws {
