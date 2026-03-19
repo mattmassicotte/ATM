@@ -1,30 +1,35 @@
 import Foundation
 
 /// A simple store backed by ``FileManager``.
-public struct FileSystemBackingStore<Value: Codable>: BackingStore {
-	public typealias Key = String
+public struct FileSystemBackingStore<Key: Hashable, Value: Codable>: BackingStore {
 	public typealias Encoder = (Value) throws -> Data
 	public typealias Decoder = (Data) throws -> Value
+	public typealias KeyEncoder = (Key) -> String
 
 	private let url: URL
 	private let encoder: Encoder
 	private let decoder: Decoder
+	private let keyEncoder: KeyEncoder
 	public var errorHandler: (any Error) -> Void = { _ in }
 
 	public init(
 		url: URL,
 		encoder: @escaping Encoder,
-		decoder: @escaping Decoder
+		decoder: @escaping Decoder,
+		keyEncoder: @escaping KeyEncoder
 	) throws {
 		self.url = url
 		self.encoder = encoder
 		self.decoder = decoder
+		self.keyEncoder = keyEncoder
 
 		try createDirectoryIfNeeded()
 	}
 
 	public func url(for key: Key) -> URL {
-		url.appendingPathComponent(key, isDirectory: false)
+		let name = keyEncoder(key)
+
+		return url.appendingPathComponent(name, isDirectory: false)
 	}
 
 	private func createDirectoryIfNeeded() throws {
@@ -67,6 +72,38 @@ public struct FileSystemBackingStore<Value: Codable>: BackingStore {
 }
 
 extension FileSystemBackingStore {
+	/// Creates an instance that uses `JSONEncoder` and `JSONDecoder` for serialization.
+	public init(
+		url: URL,
+		keyEncoder: @escaping KeyEncoder
+	) throws {
+		let jsonEncoder = JSONEncoder()
+		let jsonDecoder = JSONDecoder()
+
+		try self.init(
+			url: url,
+			encoder: { try jsonEncoder.encode($0) },
+			decoder: { try jsonDecoder.decode(Value.self, from: $0) },
+			keyEncoder: keyEncoder
+		)
+	}
+}
+
+extension FileSystemBackingStore where Key == String {
+	/// Creates an instance that uses the key value itself as the on-disk file name.
+	public init(
+		url: URL,
+		encoder: @escaping Encoder,
+		decoder: @escaping Decoder
+	) throws {
+		try self.init(
+			url: url,
+			encoder: encoder,
+			decoder: decoder,
+			keyEncoder: { $0 }
+		)
+	}
+
 	/// Creates an instance that uses `JSONEncoder` and `JSONDecoder` for serialization.
 	public init(
 		url: URL

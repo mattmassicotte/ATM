@@ -14,7 +14,7 @@ struct FileSystemBackingStoreTests {
 	}
 
 	@Test func readAndWrite() throws {
-		var store = try FileSystemBackingStore<String>(url: url)
+		var store = try FileSystemBackingStore<String, String>(url: url)
 
 		#expect(store.read("Korben") == nil)
 
@@ -24,7 +24,7 @@ struct FileSystemBackingStoreTests {
 	}
 
 	@Test func errorReporting() async throws {
-		var store = try FileSystemBackingStore<String>(
+		var store = try FileSystemBackingStore<String, String>(
 			url: url,
 			encoder: { _ in throw CancellationError() },
 			decoder: { _ in throw CancellationError() }
