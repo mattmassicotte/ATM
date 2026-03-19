@@ -89,8 +89,8 @@ extension FileSystemBackingStore {
 	}
 }
 
-extension FileSystemBackingStore where Key == String {
-	/// Creates an instance that uses the key value itself as the on-disk file name.
+extension FileSystemBackingStore where Key: CustomStringConvertible {
+	/// Creates an instance that uses the key's description as the on-disk file name.
 	public init(
 		url: URL,
 		encoder: @escaping Encoder,
@@ -100,7 +100,7 @@ extension FileSystemBackingStore where Key == String {
 			url: url,
 			encoder: encoder,
 			decoder: decoder,
-			keyEncoder: { $0 }
+			keyEncoder: { $0.description }
 		)
 	}
 
