@@ -39,4 +39,29 @@ struct FileSystemBackingStoreTests {
 			store.write("Korben", "Dallas")
 		}
 	}
+
+	@Test func unreadableExistingEntry() async throws {
+		var store = try FileSystemBackingStore<String, String>(
+			url: url
+		)
+
+		let keyURL = store.url(for: "Korben")
+
+		// write some empty data here
+		try Data().write(to: keyURL)
+
+		await confirmation { confirmation in
+			store.errorHandler = {
+				#expect($0 is DecodingError)
+				confirmation.confirm()
+			}
+
+			// this should fail
+			#expect(store.read("Korben") == nil)
+
+			// overriding should be possible
+			store.write("Korben", "Dallas")
+			#expect(store.read("Korben") == "Dallas")
+		}
+	}
 }
