@@ -65,6 +65,7 @@ struct FileSystemBackingStoreTests {
 		}
 	}
 
+	@available(macOS 13.0, iOS 16.0, watchOS 9.0, tvOS 16.0, *)
 	@Test func ageAttribute() async throws {
 		var store = try FileSystemBackingStore<String, String>(url: url)
 
