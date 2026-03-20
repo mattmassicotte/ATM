@@ -3,7 +3,7 @@ import Testing
 
 import ATM
 
-@Suite
+@Suite(.serialized)
 struct FileSystemBackingStoreTests {
 	let url: URL
 
@@ -63,5 +63,19 @@ struct FileSystemBackingStoreTests {
 			store.write("Korben", "Dallas")
 			#expect(store.read("Korben") == "Dallas")
 		}
+	}
+
+	@Test func ageAttribute() async throws {
+		var store = try FileSystemBackingStore<String, String>(url: url)
+
+		#expect(store.read("Korben") == nil)
+
+		store.write("Korben", "Dallas")
+
+		try await Task.sleep(for: .milliseconds(1200))
+
+		let entry = try #require(store.readEntry("Korben"))
+
+		#expect(entry.age >= 1)
 	}
 }

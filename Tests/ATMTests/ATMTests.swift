@@ -11,8 +11,8 @@ class ReferenceStore<Store: BackingStore>: BackingStore {
 		self.wrapped = wrapped
 	}
 
-	func read(_ key: Store.Key) -> Store.Value? {
-		wrapped.read(key)
+	func readEntry(_ key: Store.Key) -> CacheEntry<Store.Value>? {
+		wrapped.readEntry(key)
 	}
 
 	func write(_ key: Store.Key, _ value: Store.Value?, cost: Int) {
@@ -35,7 +35,22 @@ struct ATMTests {
 		cache["korben"] = nil
 		#expect(cache["korben"] == nil)
 	}
-	
+
+	@Test func evictionWithDictionaryStore() async throws {
+		var cache = SynchronousCache<String, Int>(
+			writePolicy: .writeThrough,
+			evictionPolicy: EvictionPolicy.age(1),
+			store: DictionaryBackingStore()
+		)
+
+		cache["korben"] = 45
+		#expect(cache["korben"] == 45)
+
+		try await Task.sleep(for: .milliseconds(1200))
+
+		#expect(cache["korben"] == nil)
+	}
+
 	@Test func multilevelStore() throws {
 		var cache = SynchronousCache<String, Int>(
 			levels: [
@@ -54,9 +69,9 @@ struct ATMTests {
 	}
 
 	@Test func synchronousWriteThroughPolicy() throws {
-		let level0 = ReferenceStore(DictionaryBackingStore<String, Int>())
-		let level1 = ReferenceStore(DictionaryBackingStore<String, Int>())
-		let level2 = ReferenceStore(DictionaryBackingStore<String, Int>())
+		var level0 = ReferenceStore(DictionaryBackingStore<String, Int>())
+		var level1 = ReferenceStore(DictionaryBackingStore<String, Int>())
+		var level2 = ReferenceStore(DictionaryBackingStore<String, Int>())
 
 		var cache = SynchronousCache<String, Int>(
 			levels: [
@@ -82,9 +97,9 @@ struct ATMTests {
 	}
 
 	@Test func synchronousWriteBackPolicy() throws {
-		let level0 = ReferenceStore(DictionaryBackingStore<String, Int>())
-		let level1 = ReferenceStore(DictionaryBackingStore<String, Int>())
-		let level2 = ReferenceStore(DictionaryBackingStore<String, Int>())
+		var level0 = ReferenceStore(DictionaryBackingStore<String, Int>())
+		var level1 = ReferenceStore(DictionaryBackingStore<String, Int>())
+		var level2 = ReferenceStore(DictionaryBackingStore<String, Int>())
 
 		var cache = SynchronousCache<String, Int>(
 			levels: [
@@ -144,9 +159,9 @@ extension ATMTests {
 	}
 
 	@Test func asynchronousWriteThroughPolicy() async throws {
-		let level0 = ReferenceStore(DictionaryBackingStore<String, Int>())
-		let level1 = ReferenceStore(DictionaryBackingStore<String, Int>())
-		let level2 = ReferenceStore(DictionaryBackingStore<String, Int>())
+		var level0 = ReferenceStore(DictionaryBackingStore<String, Int>())
+		var level1 = ReferenceStore(DictionaryBackingStore<String, Int>())
+		var level2 = ReferenceStore(DictionaryBackingStore<String, Int>())
 
 		var cache = AsynchronousCache<String, Int>(
 			levels: [
@@ -172,9 +187,9 @@ extension ATMTests {
 	}
 
 	@Test func asynchronousWriteBackPolicy() async throws {
-		let level0 = ReferenceStore(DictionaryBackingStore<String, Int>())
-		let level1 = ReferenceStore(DictionaryBackingStore<String, Int>())
-		let level2 = ReferenceStore(DictionaryBackingStore<String, Int>())
+		var level0 = ReferenceStore(DictionaryBackingStore<String, Int>())
+		var level1 = ReferenceStore(DictionaryBackingStore<String, Int>())
+		var level2 = ReferenceStore(DictionaryBackingStore<String, Int>())
 
 		var cache = AsynchronousCache<String, Int>(
 			levels: [

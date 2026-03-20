@@ -23,12 +23,10 @@ public struct CacheBackingStore<Key: Hashable, Value>: BackingStore {
 	}
 	
 	private final class ValueObject {
-		let key: Key
-		let value: Value
-		
-		init(_ value: Value, for key: Key) {
-			self.key = key
-			self.value = value
+		let entry: CacheEntry<Value>
+
+		init(value: Value, cost: Int) {
+			self.entry = CacheEntry(value: value, cost: cost)
 		}
 	}
 	
@@ -59,11 +57,11 @@ public struct CacheBackingStore<Key: Hashable, Value>: BackingStore {
 	private func handleEviction(of wrapper: ValueObject) {
 		// should we do something here?
 	}
-	
-	public func read(_ key: Key) -> Value? {
+
+	public func readEntry(_ key: Key) -> CacheEntry<Value>? {
 		let keyObj = KeyObject(key)
 
-		return internalCache.object(forKey: keyObj)?.value
+		return internalCache.object(forKey: keyObj)?.entry
 	}
 	
 	public func write(_ key: Key, _ value: Value?, cost: Int) {
@@ -74,8 +72,8 @@ public struct CacheBackingStore<Key: Hashable, Value>: BackingStore {
 			return
 		}
 		
-		let valueObj = ValueObject(value, for: key)
-		
+		let valueObj = ValueObject(value: value, cost: cost)
+
 		internalCache.setObject(valueObj, forKey: keyObj, cost: cost)
 	}
 }

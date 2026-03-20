@@ -1,10 +1,12 @@
 public struct SynchronousCache<Key: Hashable, Value> {
 	public struct CacheLevel {
 		public var writePolicy: WritePolicy
+		public var evictionPolicy: EvictionPolicy
 		public var store: any BackingStore<Key, Value>
-		
-		public init(writePolicy: WritePolicy, store: any BackingStore<Key, Value>) {
+
+		public init(writePolicy: WritePolicy, evictionPolicy: EvictionPolicy = .none, store: any BackingStore<Key, Value>) {
 			self.writePolicy = writePolicy
+			self.evictionPolicy = evictionPolicy
 			self.store = store
 		}
 		
@@ -23,19 +25,31 @@ public struct SynchronousCache<Key: Hashable, Value> {
 		self.levels = levels
 	}
 	
-	public init(writePolicy: WritePolicy, store: any BackingStore<Key, Value>) {
-		self.levels = [CacheLevel(writePolicy: writePolicy, store: store)]
+	public init(writePolicy: WritePolicy, evictionPolicy: EvictionPolicy = .none, store: any BackingStore<Key, Value>) {
+		self.levels = [CacheLevel(writePolicy: writePolicy, evictionPolicy: evictionPolicy, store: store)]
 	}
 }
 
 extension SynchronousCache: BackingStore {
-	public func read(_ key: Key) -> Value? {
-		for level in levels {
-			if let value = level.store.read(key) {
-				return value
+	public mutating func readEntry(_ key: Key) -> CacheEntry<Value>? {
+		for i in 0..<levels.count {
+			guard let entry = levels[i].store.readEntry(key) else {
+				continue
+			}
+
+			switch levels[i].evictionPolicy {
+			case .none:
+				return entry
+			case .age(let maxAge):
+				if entry.age >= maxAge {
+					levels[i].store.write(key, nil)
+					return nil
+				}
+
+				return entry
 			}
 		}
-		
+
 		return nil
 	}
 	

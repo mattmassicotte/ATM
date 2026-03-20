@@ -2,8 +2,8 @@ import Foundation
 
 /// A simple store backed by ``FileManager``.
 public struct FileSystemBackingStore<Key: Hashable, Value: Codable>: BackingStore {
-	public typealias Encoder = (Value) throws -> Data
-	public typealias Decoder = (Data) throws -> Value
+	public typealias Encoder = (CacheEntry<Value>) throws -> Data
+	public typealias Decoder = (Data) throws -> CacheEntry<Value>
 	public typealias KeyEncoder = (Key) -> String
 
 	private let url: URL
@@ -38,12 +38,14 @@ public struct FileSystemBackingStore<Key: Hashable, Value: Codable>: BackingStor
 		}
 	}
 
-	public func read(_ key: Key) -> Value? {
+	public func readEntry(_ key: Key) -> CacheEntry<Value>? {
 		do {
 			let keyURL = url(for: key)
 			let data = try Data(contentsOf: keyURL)
 
-			return try decoder(data)
+			let entry = try decoder(data)
+
+			return entry
 		} catch {
 			errorHandler(error)
 
@@ -63,7 +65,8 @@ public struct FileSystemBackingStore<Key: Hashable, Value: Codable>: BackingStor
 				return
 			}
 
-			let data = try encoder(value)
+			let container = CacheEntry(value: value, cost: cost)
+			let data = try encoder(container)
 			try data.write(to: keyURL)
 		} catch {
 			errorHandler(error)
@@ -83,7 +86,7 @@ extension FileSystemBackingStore {
 		try self.init(
 			url: url,
 			encoder: { try jsonEncoder.encode($0) },
-			decoder: { try jsonDecoder.decode(Value.self, from: $0) },
+			decoder: { try jsonDecoder.decode(CacheEntry<Value>.self, from: $0) },
 			keyEncoder: keyEncoder
 		)
 	}
@@ -114,7 +117,7 @@ extension FileSystemBackingStore where Key: CustomStringConvertible {
 		try self.init(
 			url: url,
 			encoder: { try jsonEncoder.encode($0) },
-			decoder: { try jsonDecoder.decode(Value.self, from: $0) }
+			decoder: { try jsonDecoder.decode(CacheEntry<Value>.self, from: $0) }
 		)
 	}
 }
