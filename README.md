@@ -73,24 +73,28 @@ There's a cool library called [LRUCache](https://github.com/nicklockwood/LRUCach
 import LRUCache
 import ATM
 
-extension LRUCache: BackingStore {
-    public func read(_ key: Key) -> Value? {
-        value(forKey: key)
+struct LRUCacheStore<Key: Hashable & Sendable, Value: Sendable>: BackingStore {
+    private let lruCache = LRUCache<Key, CacheEntry<Value>>(clearsOnMemoryPressure: true)
+
+    public func readEntry(_ key: Key) -> CacheEntry<Value>? {
+        lruCache.value(forKey: key)
     }
 
     public func write(_ key: Key, _ value: Value?, cost: Int) {
         guard let value else {
-            removeValue(forKey: key)
+            lruCache.removeValue(forKey: key)
             return
         }
 
-        setValue(value, forKey: key, cost: cost)
+        let entry = CacheEntry(value: value, cost: cost)
+
+        lruCache.setValue(entry, forKey: key, cost: cost)
     }
 }
 
 var cache = SynchronousCache<String, String>(
     writePolicy: .writeThrough,
-    store: LRUCache<String, Int>(clearsOnMemoryPressure: true)
+    store: LRUCacheStore<String, Int>()
 )
 ```
 
